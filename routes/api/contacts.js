@@ -12,6 +12,7 @@ const router = express.Router();
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const { _id: owner } = req.user;
+    console.timeLog(owner);
     const { page = 1, limit = 5 } = req.query;
     const skip = (page - 1) * limit;
     const result = await Contact.find({ owner }, "-createdAt -updatedAt", { skip, limit }).populate("owner", "_id email subscription");
@@ -28,7 +29,10 @@ router.get('/', authenticate, async (req, res, next) => {
 router.get('/:contactId', authenticate, isValidId, async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await Contact.findById(contactId);
+    const { _id: owner } = req.user;
+    console.log(contactId, owner);
+
+    const result = await Contact.findOne({ _id: contactId, owner });
     if (!result) {
       throw HttpError(404, "Not found")
     }
@@ -61,7 +65,9 @@ router.post('/', authenticate, async (req, res, next) => {
 router.delete('/:contactId', authenticate, isValidId, async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const data = await Contact.findById(contactId);
+    const { _id: owner } = req.user;
+
+    const data = await Contact.findOne({ _id: contactId, owner });
     if (!data) {
       throw HttpError(404, "Not found")
     }
@@ -83,11 +89,13 @@ router.put('/:contactId', authenticate, isValidId, async (req, res, next) => {
       throw HttpError(400, error.message);
     }
     const { contactId } = req.params;
-    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true })
-
-    if (!result) {
+    const { _id: owner } = req.user;
+    const data = await Contact.findOne({ _id: contactId, owner });
+    if (!data) {
       throw HttpError(404, "Not found")
     }
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true })
+
     res.json(result);
   }
   catch (e) {
@@ -103,11 +111,12 @@ router.patch('/:contactId/favorite', authenticate, isValidId, async (req, res, n
       throw HttpError(400, "missing field favorite");
     }
     const { contactId } = req.params;
-    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true })
-
-    if (!result) {
+    const data = await Contact.findOne({ _id: contactId, owner });
+    if (!data) {
       throw HttpError(404, "Not found")
     }
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true })
+
     res.json(result);
   }
   catch (e) {

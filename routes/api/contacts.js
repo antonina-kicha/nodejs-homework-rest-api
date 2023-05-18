@@ -67,11 +67,10 @@ router.delete('/:contactId', authenticate, isValidId, async (req, res, next) => 
     const { contactId } = req.params;
     const { _id: owner } = req.user;
 
-    const data = await Contact.findOne({ _id: contactId, owner });
-    if (!data) {
+    const result = await Contact.findOneAndRemove({ _id: contactId, owner });
+    if (!result) {
       throw HttpError(404, "Not found")
     }
-    const result = await Contact.findByIdAndRemove(contactId);
     res.status(200).json({
       "message": "contact deleted"
     });
@@ -90,12 +89,11 @@ router.put('/:contactId', authenticate, isValidId, async (req, res, next) => {
     }
     const { contactId } = req.params;
     const { _id: owner } = req.user;
-    const data = await Contact.findOne({ _id: contactId, owner });
-    if (!data) {
+
+    const result = await Contact.findOneAndUpdate({ _id: contactId, owner }, req.body, { new: true })
+    if (!result) {
       throw HttpError(404, "Not found")
     }
-    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true })
-
     res.json(result);
   }
   catch (e) {

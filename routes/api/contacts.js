@@ -109,11 +109,11 @@ router.patch('/:contactId/favorite', authenticate, isValidId, async (req, res, n
       throw HttpError(400, "missing field favorite");
     }
     const { contactId } = req.params;
-    const data = await Contact.findOne({ _id: contactId, owner });
-    if (!data) {
+
+    const result = await Contact.findOneAndUpdate({ _id: contactId, owner }, req.body, { new: true });
+    if (!result) {
       throw HttpError(404, "Not found")
     }
-    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true })
 
     res.json(result);
   }

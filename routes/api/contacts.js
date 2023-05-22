@@ -12,7 +12,6 @@ const router = express.Router();
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const { _id: owner } = req.user;
-    console.timeLog(owner);
     const { page = 1, limit = 5 } = req.query;
     const skip = (page - 1) * limit;
     const result = await Contact.find({ owner }, "-createdAt -updatedAt", { skip, limit }).populate("owner", "_id email subscription");
@@ -30,7 +29,6 @@ router.get('/:contactId', authenticate, isValidId, async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const { _id: owner } = req.user;
-    console.log(contactId, owner);
 
     const result = await Contact.findOne({ _id: contactId, owner });
     if (!result) {
@@ -48,7 +46,6 @@ router.get('/:contactId', authenticate, isValidId, async (req, res, next) => {
 router.post('/', authenticate, async (req, res, next) => {
   try {
     const { error } = addSchema.validate(req.body);
-    console.log(error);
     if (error) {
       throw HttpError(400, error.message);
     }
